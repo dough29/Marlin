@@ -56,6 +56,9 @@
 #if ANY_THERMISTOR_IS(5) // 100k ParCan thermistor (104GT-2)
   #include "thermistortable_5.h"
 #endif
+#if ANY_THERMISTOR_IS(501) // 100k Zonestar thermistor
+  #include "thermistortable_501.h"
+#endif
 #if ANY_THERMISTOR_IS(6) // 100k Epcos thermistor
   #include "thermistortable_6.h"
 #endif
@@ -201,8 +204,8 @@
 #endif
 
 // The SCAN_THERMISTOR_TABLE macro needs alteration?
-static_assert(HEATER_0_TEMPTABLE_LEN < 128 && HEATER_1_TEMPTABLE_LEN < 128 && HEATER_2_TEMPTABLE_LEN < 128 && HEATER_3_TEMPTABLE_LEN < 128 && HEATER_4_TEMPTABLE_LEN < 128 && BEDTEMPTABLE_LEN < 128 && CHAMBERTEMPTABLE_LEN < 128,
-  "Temperature conversion tables over 127 entries need special consideration."
+static_assert(HEATER_0_TEMPTABLE_LEN < 256 && HEATER_1_TEMPTABLE_LEN < 256 && HEATER_2_TEMPTABLE_LEN < 256 && HEATER_3_TEMPTABLE_LEN < 256 && HEATER_4_TEMPTABLE_LEN < 256 && BEDTEMPTABLE_LEN < 256 && CHAMBERTEMPTABLE_LEN < 256,
+  "Temperature conversion tables over 255 entries need special consideration."
 );
 
 // Set the high and low raw values for the heaters

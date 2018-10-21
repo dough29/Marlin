@@ -380,12 +380,6 @@
 
 #define HAS_DEBUG_MENU (ENABLED(ULTIPANEL) && ENABLED(LCD_PROGRESS_BAR_TEST))
 
-// MK2 Multiplexer forces SINGLENOZZLE and kills DISABLE_INACTIVE_EXTRUDER
-#if ENABLED(MK2_MULTIPLEXER)
-  #define SINGLENOZZLE
-  #undef DISABLE_INACTIVE_EXTRUDER
-#endif
-
 /**
  * Extruders have some combination of stepper motors and hotends
  * so we separate these concepts into the defines:
@@ -416,6 +410,16 @@
   #define E_MANUAL        EXTRUDERS
 #endif
 
+// No inactive extruders with MK2_MULTIPLEXER or SWITCHING_NOZZLE
+#if ENABLED(MK2_MULTIPLEXER) || ENABLED(SWITCHING_NOZZLE)
+  #undef DISABLE_INACTIVE_EXTRUDER
+#endif
+
+// MK2 Multiplexer forces SINGLENOZZLE
+#if ENABLED(MK2_MULTIPLEXER)
+  #define SINGLENOZZLE
+#endif
+
 #if ENABLED(SINGLENOZZLE) || ENABLED(MIXING_EXTRUDER)         // One hotend, one thermistor, no XY offset
   #undef HOTENDS
   #define HOTENDS       1
@@ -435,10 +439,20 @@
  */
 #if ENABLED(DISTINCT_E_FACTORS) && E_STEPPERS > 1
   #define XYZE_N (XYZ + E_STEPPERS)
+  #if ENABLED(HANGPRINTER)
+    #define NUM_AXIS_N (ABCD + E_STEPPERS)
+  #else
+    #define NUM_AXIS_N (XYZ + E_STEPPERS)
+  #endif
   #define E_AXIS_N (E_AXIS + extruder)
 #else
   #undef DISTINCT_E_FACTORS
   #define XYZE_N XYZE
+  #if ENABLED(HANGPRINTER)
+    #define NUM_AXIS_N ABCDE
+  #else
+    #define NUM_AXIS_N XYZE
+  #endif
   #define E_AXIS_N E_AXIS
 #endif
 
@@ -492,7 +506,7 @@
  * Set flags for enabled probes
  */
 #define HAS_BED_PROBE (ENABLED(FIX_MOUNTED_PROBE) || ENABLED(Z_PROBE_ALLEN_KEY) || HAS_Z_SERVO_PROBE || ENABLED(Z_PROBE_SLED) || ENABLED(SOLENOID_PROBE))
-#define PROBE_SELECTED (HAS_BED_PROBE || ENABLED(PROBE_MANUALLY))
+#define PROBE_SELECTED (HAS_BED_PROBE || ENABLED(PROBE_MANUALLY) || ENABLED(MESH_BED_LEVELING))
 
 #if !HAS_BED_PROBE
   // Clear probe pin settings when no probe is selected

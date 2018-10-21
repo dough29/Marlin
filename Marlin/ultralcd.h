@@ -41,8 +41,8 @@
 
   #include "Marlin.h"
 
-  int16_t lcd_strlen(const char* s);
-  int16_t lcd_strlen_P(const char* s);
+  int16_t utf8_strlen(const char* s);
+  int16_t utf8_strlen_P(const char* s);
   bool lcd_hasstatus();
   void lcd_setstatus(const char* message, const bool persist=false);
   void lcd_setstatusPGM(const char* message, const int8_t level=0);
@@ -260,12 +260,6 @@
 
 #if ENABLED(SD_REPRINT_LAST_SELECTED_FILE)
   void lcd_reselect_last_file();
-#endif
-
-#if ENABLED(ULTIPANEL) && ENABLED(SDSUPPORT)
-  extern bool abort_sd_printing;
-#else
-  constexpr bool abort_sd_printing = false;
 #endif
 
 #endif // ULTRALCD_H

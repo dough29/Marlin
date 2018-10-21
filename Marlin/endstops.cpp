@@ -189,7 +189,7 @@ void Endstops::init() {
 
 } // Endstops::init
 
-// Called from ISR: Poll endstop state if required
+// Called at ~1KHz from Temperature ISR: Poll endstop state if required
 void Endstops::poll() {
 
   #if ENABLED(PINS_DEBUGGING)
@@ -229,11 +229,13 @@ void Endstops::not_homing() {
   #endif
 }
 
-// If the last move failed to trigger an endstop, call kill
-void Endstops::validate_homing_move() {
-  if (!trigger_state()) kill(PSTR(MSG_ERR_HOMING_FAILED));
-  hit_on_purpose();
-}
+#if ENABLED(VALIDATE_HOMING_ENDSTOPS)
+  // If the last move failed to trigger an endstop, call kill
+  void Endstops::validate_homing_move() {
+    if (trigger_state()) hit_on_purpose();
+    else kill(PSTR(MSG_ERR_HOMING_FAILED));
+  }
+#endif
 
 // Enable / disable endstop z-probe checking
 #if HAS_BED_PROBE
@@ -256,8 +258,9 @@ void Endstops::validate_homing_move() {
   }
 #endif
 
-void Endstops::report_state() {
-  if (hit_state) {
+void Endstops::event_handler() {
+  static uint8_t prev_hit_state; // = 0
+  if (hit_state && hit_state != prev_hit_state) {
     #if ENABLED(ULTRA_LCD)
       char chrX = ' ', chrY = ' ', chrZ = ' ', chrP = ' ';
       #define _SET_STOP_CHAR(A,C) (chr## A = C)
@@ -293,8 +296,6 @@ void Endstops::report_state() {
       lcd_status_printf_P(0, PSTR(MSG_LCD_ENDSTOPS " %c %c %c %c"), chrX, chrY, chrZ, chrP);
     #endif
 
-    hit_on_purpose();
-
     #if ENABLED(ABORT_ON_ENDSTOP_HIT_FEATURE_ENABLED) && ENABLED(SDSUPPORT)
       if (planner.abort_on_endstop_hit) {
         card.sdprinting = false;
@@ -304,14 +305,19 @@ void Endstops::report_state() {
       }
     #endif
   }
+  prev_hit_state = hit_state;
 } // Endstops::report_state
 
-void Endstops::M119() {
+static void print_es_state(const bool is_hit, const char * const label=NULL) {
+  if (label) serialprintPGM(label);
+  SERIAL_PROTOCOLPGM(": ");
+  serialprintPGM(is_hit ? PSTR(MSG_ENDSTOP_HIT) : PSTR(MSG_ENDSTOP_OPEN));
+  SERIAL_EOL();
+}
+
+void _O2 Endstops::M119() {
   SERIAL_PROTOCOLLNPGM(MSG_M119_REPORT);
-  #define ES_REPORT(AXIS) do{ \
-    SERIAL_PROTOCOLPGM(MSG_##AXIS); \
-    SERIAL_PROTOCOLLN(((READ(AXIS##_PIN)^AXIS##_ENDSTOP_INVERTING) ? MSG_ENDSTOP_HIT : MSG_ENDSTOP_OPEN)); \
-  }while(0)
+  #define ES_REPORT(S) print_es_state(READ(S##_PIN) != S##_ENDSTOP_INVERTING, PSTR(MSG_##S))
   #if HAS_X_MIN
     ES_REPORT(X_MIN);
   #endif
@@ -349,12 +355,33 @@ void Endstops::M119() {
     ES_REPORT(Z2_MAX);
   #endif
   #if ENABLED(Z_MIN_PROBE_ENDSTOP)
-    SERIAL_PROTOCOLPGM(MSG_Z_PROBE);
-    SERIAL_PROTOCOLLN(((READ(Z_MIN_PROBE_PIN)^Z_MIN_PROBE_ENDSTOP_INVERTING) ? MSG_ENDSTOP_HIT : MSG_ENDSTOP_OPEN));
+    print_es_state(READ(Z_MIN_PROBE_PIN) != Z_MIN_PROBE_ENDSTOP_INVERTING, PSTR(MSG_Z_PROBE));
   #endif
   #if ENABLED(FILAMENT_RUNOUT_SENSOR)
-    SERIAL_PROTOCOLPGM(MSG_FILAMENT_RUNOUT_SENSOR);
-    SERIAL_PROTOCOLLN(((READ(FIL_RUNOUT_PIN)^FIL_RUNOUT_INVERTING) ? MSG_ENDSTOP_HIT : MSG_ENDSTOP_OPEN));
+    #if NUM_RUNOUT_SENSORS == 1
+      print_es_state(READ(FIL_RUNOUT_PIN) != FIL_RUNOUT_INVERTING, PSTR(MSG_FILAMENT_RUNOUT_SENSOR));
+    #else
+      for (uint8_t i = 1; i <= NUM_RUNOUT_SENSORS; i++) {
+        pin_t pin;
+        switch (i) {
+          default: continue;
+          case 1: pin = FIL_RUNOUT_PIN; break;
+          case 2: pin = FIL_RUNOUT2_PIN; break;
+          #if NUM_RUNOUT_SENSORS > 2
+            case 3: pin = FIL_RUNOUT3_PIN; break;
+            #if NUM_RUNOUT_SENSORS > 3
+              case 4: pin = FIL_RUNOUT4_PIN; break;
+              #if NUM_RUNOUT_SENSORS > 4
+                case 5: pin = FIL_RUNOUT5_PIN; break;
+              #endif
+            #endif
+          #endif
+        }
+        SERIAL_PROTOCOLPGM(MSG_FILAMENT_RUNOUT_SENSOR);
+        if (i > 1) { SERIAL_CHAR(' '); SERIAL_CHAR('0' + i); }
+        print_es_state(digitalRead(pin) != FIL_RUNOUT_INVERTING);
+      }
+    #endif
   #endif
 } // Endstops::M119
 
@@ -365,7 +392,7 @@ void Endstops::M119() {
 #define _ENDSTOP_PIN(AXIS, MINMAX) AXIS ##_## MINMAX ##_PIN
 #define _ENDSTOP_INVERTING(AXIS, MINMAX) AXIS ##_## MINMAX ##_ENDSTOP_INVERTING
 
-// Check endstops - Could be called from ISR!
+// Check endstops - Could be called from Temperature ISR!
 void Endstops::update() {
 
   #if DISABLED(ENDSTOP_NOISE_FILTER)
@@ -540,7 +567,7 @@ void Endstops::update() {
     if (dual_hit) { \
       _ENDSTOP_HIT(AXIS1, MINMAX); \
       /* if not performing home or if both endstops were trigged during homing... */ \
-      if (!stepper.homing_dual_axis || dual_hit == 0x3) \
+      if (!stepper.homing_dual_axis || dual_hit == 0b11) \
         planner.endstop_triggered(_AXIS(AXIS1)); \
     } \
   }while(0)

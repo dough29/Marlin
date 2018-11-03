@@ -23,9 +23,6 @@
 
 #include <Arduino.h>
 
-#include <stdio.h>
-#include <inttypes.h>
-
 struct duration_t {
   /**
    * @brief Duration is stored in seconds

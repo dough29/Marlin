@@ -19,6 +19,7 @@
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  *
  */
+#pragma once
 
 /**
  * French
@@ -27,8 +28,6 @@
  * See also http://marlinfw.org/docs/development/lcd_language.html
  *
  */
-#ifndef LANGUAGE_FR_UTF_H
-#define LANGUAGE_FR_UTF_H
 
 #define DISPLAY_CHARSET_ISO10646_1
 #define CHARSIZE 2
@@ -123,7 +122,7 @@
 #define MSG_UBL_OUTPUT_MAP_CSV              _UxGT("Voir pour CSV")
 #define MSG_UBL_OUTPUT_MAP_BACKUP           _UxGT("Voir pour sauveg.")
 #define MSG_UBL_INFO_UBL                    _UxGT("Voir info UBL")
-#define MSG_UBL_EDIT_MESH_MENU              _UxGT("Modifier maille")
+#define MSG_EDIT_MESH                       _UxGT("Modifier maille")
 #define MSG_UBL_FILLIN_AMOUNT               _UxGT("Taux de remplissage")
 #define MSG_UBL_MANUAL_FILLIN               _UxGT("Remplissage manuel")
 #define MSG_UBL_SMART_FILLIN                _UxGT("Remplissage auto")
@@ -185,8 +184,8 @@
 #define MSG_MAX                             LCD_STR_THERMOMETER _UxGT(" Max")
 #define MSG_FACTOR                          LCD_STR_THERMOMETER _UxGT(" Facteur")
 #define MSG_AUTOTEMP                        _UxGT("Temp. Auto.")
-#define MSG_ON                              _UxGT("Marche ")
-#define MSG_OFF                             _UxGT("Arrêt")
+#define MSG_LCD_ON                          _UxGT("Marche")
+#define MSG_LCD_OFF                         _UxGT("Arrêt")
 #define MSG_PID_P                           _UxGT("PID-P")
 #define MSG_PID_I                           _UxGT("PID-I")
 #define MSG_PID_D                           _UxGT("PID-D")
@@ -392,5 +391,3 @@
   #define MSG_FILAMENT_CHANGE_LOAD_1        _UxGT("Chargement...")
   #define MSG_FILAMENT_CHANGE_RESUME_1      _UxGT("Reprise...")
 #endif // LCD_HEIGHT < 4
-
-#endif // LANGUAGE_FR_UTF_H

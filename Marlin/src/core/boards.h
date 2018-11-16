@@ -19,9 +19,7 @@
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  *
  */
-
-#ifndef BOARDS_H
-#define BOARDS_H
+#pragma once
 
 #define BOARD_UNKNOWN -1
 
@@ -211,7 +209,8 @@
 #define BOARD_RURAMPS4D_11     1550   // RuRAMPS4Duo v1.1 (Power outputs: Hotend0, Hotend1, Hotend2, Fan0, Fan1, Bed)
 #define BOARD_RURAMPS4D_13     1551   // RuRAMPS4Duo v1.3 (Power outputs: Hotend0, Hotend1, Hotend2, Fan0, Fan1, Bed)
 #define BOARD_ULTRATRONICS_PRO 1560   // ReprapWorld Ultratronics Pro V1.0
-#define BOARD_ARCHIM2          1590   // UltiMachine Archim2 (with TMC2130 drivers)
+#define BOARD_ARCHIM1          1591   // UltiMachine Archim1 (with DRV8825 drivers)
+#define BOARD_ARCHIM2          1592   // UltiMachine Archim2 (with TMC2130 drivers)
 #define BOARD_ALLIGATOR        1602   // Alligator Board R2
 
 //
@@ -247,5 +246,3 @@
 #define BOARD_ESP32            1900
 
 #define MB(board) (defined(BOARD_##board) && MOTHERBOARD==BOARD_##board)
-
-#endif // __BOARDS_H

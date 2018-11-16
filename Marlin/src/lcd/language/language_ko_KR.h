@@ -19,6 +19,7 @@
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  *
  */
+#pragma once
 
 /**
  * Korean
@@ -27,8 +28,6 @@
  * See also http://marlinfw.org/docs/development/lcd_language.html
  *
  */
-#ifndef LANGUAGE_KO_KR_H
-#define LANGUAGE_KO_KR_H
 
 #define CHARSIZE 1
 
@@ -134,7 +133,7 @@
 #define MSG_UBL_OUTPUT_MAP_CSV              _UxGT("Output for CSV")
 #define MSG_UBL_OUTPUT_MAP_BACKUP           _UxGT("Off Printer Backup")
 #define MSG_UBL_INFO_UBL                    _UxGT("Output UBL Info")
-#define MSG_UBL_EDIT_MESH_MENU              _UxGT("Edit Mesh")
+#define MSG_EDIT_MESH                       _UxGT("Edit Mesh")
 #define MSG_UBL_FILLIN_AMOUNT               _UxGT("Fill-in Amount")
 #define MSG_UBL_MANUAL_FILLIN               _UxGT("Manual Fill-in")
 #define MSG_UBL_SMART_FILLIN                _UxGT("Smart Fill-in")
@@ -195,8 +194,8 @@
 #define MSG_MAX                             _UxGT(" ") LCD_STR_THERMOMETER _UxGT(" Max")
 #define MSG_FACTOR                          _UxGT(" ") LCD_STR_THERMOMETER _UxGT(" Fact")
 #define MSG_AUTOTEMP                        _UxGT("Autotemp")
-#define MSG_ON                              _UxGT("On ")
-#define MSG_OFF                             _UxGT("Off")
+#define MSG_LCD_ON                          _UxGT("On")
+#define MSG_LCD_OFF                         _UxGT("Off")
 #define MSG_PID_P                           _UxGT("PID-P")
 #define MSG_PID_I                           _UxGT("PID-I")
 #define MSG_PID_D                           _UxGT("PID-D")
@@ -412,5 +411,3 @@
   #define MSG_FILAMENT_CHANGE_PURGE_1         _UxGT("Purging...")
   #define MSG_FILAMENT_CHANGE_RESUME_1        _UxGT("Resuming...")
 #endif // LCD_HEIGHT < 4
-
-#endif // LANGUAGE_KO_KR_H

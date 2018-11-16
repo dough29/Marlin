@@ -19,13 +19,11 @@
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  *
  */
+#pragma once
 
 /**
  * Polish for DOGM display - includes accented characters
  */
-
-#ifndef LANGUAGE_PL_DOGM_H
-#define LANGUAGE_PL_DOGM_H
 
 #define DISPLAY_CHARSET_ISO10646_PL
 
@@ -87,8 +85,8 @@
 #define MSG_MAX                             LCD_STR_THERMOMETER _UxGT(" Max")
 #define MSG_FACTOR                          LCD_STR_THERMOMETER _UxGT(" Mnożnik")
 #define MSG_AUTOTEMP                        _UxGT("Auto. temperatura")
-#define MSG_ON                              _UxGT("Wł. ")
-#define MSG_OFF                             _UxGT("Wył.")
+#define MSG_LCD_ON                          _UxGT("Wł.")
+#define MSG_LCD_OFF                         _UxGT("Wył.")
 #define MSG_PID_P                           _UxGT("PID-P")
 #define MSG_PID_I                           _UxGT("PID-I")
 #define MSG_PID_D                           _UxGT("PID-D")
@@ -253,5 +251,3 @@
   #define MSG_FILAMENT_CHANGE_LOAD_1          _UxGT("Ładowanie...")
   #define MSG_FILAMENT_CHANGE_RESUME_1        _UxGT("Wznowienie...")
 #endif // LCD_HEIGHT < 4
-
-#endif  // LANGUAGE_PL_DOGM_H

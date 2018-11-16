@@ -19,6 +19,7 @@
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  *
  */
+#pragma once
 
 /**
  * Ukrainian
@@ -27,8 +28,6 @@
  * See also http://marlinfw.org/docs/development/lcd_language.html
  *
  */
-#ifndef LANGUAGE_UK_H
-#define LANGUAGE_UK_H
 
 #define DISPLAY_CHARSET_ISO10646_5
 #define CHARSIZE 2
@@ -88,8 +87,8 @@
 #define MSG_MAX                             _UxGT(" ") LCD_STR_THERMOMETER _UxGT(" Макс")
 #define MSG_FACTOR                          _UxGT(" ") LCD_STR_THERMOMETER _UxGT(" Факт")
 #define MSG_AUTOTEMP                        _UxGT("Автотемпер.")
-#define MSG_ON                              _UxGT("Увімк.")
-#define MSG_OFF                             _UxGT("Вимк. ")
+#define MSG_LCD_ON                          _UxGT("Увімк.")
+#define MSG_LCD_OFF                         _UxGT("Вимк.")
 #define MSG_PID_P                           _UxGT("PID-P")
 #define MSG_PID_I                           _UxGT("PID-I")
 #define MSG_PID_D                           _UxGT("PID-D")
@@ -240,5 +239,3 @@
   #define MSG_FILAMENT_CHANGE_LOAD_1          _UxGT("Ввід...")
   #define MSG_FILAMENT_CHANGE_RESUME_1        _UxGT("Відновлення...")
 #endif // LCD_HEIGHT < 4
-
-#endif // LANGUAGE_UK_H

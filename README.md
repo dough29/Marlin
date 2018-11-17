@@ -4,10 +4,11 @@
 * Motherboard : MKS Gen L v1.0
 * TMC2208 stepper drivers
     * X/Y/E = 0.9v
-    * Z = 0.8v (dual Z : 2 motors on same driver)
+    * Z = 0.7v
+    * Z2 = 0.7v
 * Fang : https://www.thingiverse.com/thing:2763931 (file "FANG-oz-fang-5015.stl")
 * BLTouch support : https://www.thingiverse.com/thing:2839373
-* Dual Z
+* Dual Z (1 driver per Z motor)
 
 ## Simplify3D scripts
 

@@ -15,7 +15,7 @@
 ### Starting Script
 
 ```
-G28 X Y ; home X + Y
+G28 ; home
 G34 ; Z stepper align (will G28 all axes)
 G29 ; execute bed automatic leveling compensation
 G1 X0 Y0 Z5 F1500 ; go to home

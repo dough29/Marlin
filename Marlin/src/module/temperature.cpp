@@ -217,7 +217,7 @@ uint8_t Temperature::soft_pwm_amount[HOTENDS];
   bool Temperature::heater_idle_timeout_exceeded[HOTENDS] = { false };
 #endif
 
-#if ENABLED(ADC_KEYPAD)
+#if HAS_ADC_BUTTONS
   uint32_t Temperature::current_ADCKey_raw = 0;
   uint8_t Temperature::ADCKey_count = 0;
 #endif
@@ -1436,7 +1436,7 @@ void Temperature::init() {
     #if HOTENDS == 1
       UNUSED(e);
     #endif
-    if (degHotend(HOTEND_INDEX) < degTargetHotend(HOTEND_INDEX) - (WATCH_TEMP_INCREASE + TEMP_HYSTERESIS + 1)) {
+    if (degTargetHotend(HOTEND_INDEX) && degHotend(HOTEND_INDEX) < degTargetHotend(HOTEND_INDEX) - (WATCH_TEMP_INCREASE + TEMP_HYSTERESIS + 1)) {
       watch_target_temp[HOTEND_INDEX] = degHotend(HOTEND_INDEX) + WATCH_TEMP_INCREASE;
       watch_heater_next_ms[HOTEND_INDEX] = millis() + (WATCH_TEMP_PERIOD) * 1000UL;
     }
@@ -1452,7 +1452,7 @@ void Temperature::init() {
    * This is called when the temperature is set. (M140, M190)
    */
   void Temperature::start_watching_bed() {
-    if (degBed() < degTargetBed() - (WATCH_BED_TEMP_INCREASE + TEMP_BED_HYSTERESIS + 1)) {
+    if (degTargetBed() && degBed() < degTargetBed() - (WATCH_BED_TEMP_INCREASE + TEMP_BED_HYSTERESIS + 1)) {
       watch_target_bed_temp = degBed() + WATCH_BED_TEMP_INCREASE;
       watch_bed_next_ms = millis() + (WATCH_BED_TEMP_PERIOD) * 1000UL;
     }
@@ -1869,7 +1869,7 @@ void Temperature::isr() {
   // avoid multiple loads of pwm_count
   uint8_t pwm_count_tmp = pwm_count;
 
-  #if ENABLED(ADC_KEYPAD)
+  #if HAS_ADC_BUTTONS
     static unsigned int raw_ADCKey_value = 0;
   #endif
 
@@ -2290,7 +2290,7 @@ void Temperature::isr() {
       break;
     #endif
 
-    #if ENABLED(ADC_KEYPAD)
+    #if HAS_ADC_BUTTONS
       case Prepare_ADC_KEY:
         HAL_START_ADC(ADC_KEYPAD_PIN);
         break;
@@ -2464,7 +2464,7 @@ void Temperature::isr() {
       #if HOTENDS > 1
         ui.status_printf_P(0, heating ? PSTR("E%i " MSG_HEATING) : PSTR("E%i " MSG_COOLING), int(e + 1));
       #else
-        ui.setstatusPGM(heating ? PSTR("E " MSG_HEATING) : PSTR("E " MSG_COOLING));
+        ui.set_status_P(heating ? PSTR("E " MSG_HEATING) : PSTR("E " MSG_COOLING));
       #endif
     }
   #endif

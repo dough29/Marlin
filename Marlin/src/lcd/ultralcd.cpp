@@ -26,9 +26,7 @@
 #if HAS_SPI_LCD || ENABLED(MALYAN_LCD) || ENABLED(EXTENSIBLE_UI)
   #include "ultralcd.h"
   MarlinUI ui;
-  #if ENABLED(SDSUPPORT)
-    #include "../sd/cardreader.h"
-  #endif
+  #include "../sd/cardreader.h"
   #if ENABLED(EXTENSIBLE_UI)
     #define START_OF_UTF8_CHAR(C) (((C) & 0xC0u) != 0x80u)
   #endif
@@ -1237,7 +1235,7 @@ void MarlinUI::update() {
     static const char printing[] PROGMEM = MSG_PRINTING;
     static const char welcome[] PROGMEM = WELCOME_MSG;
     PGM_P msg;
-    if (print_job_timer.isPaused())
+    if (!IS_SD_PRINTING() && print_job_timer.isPaused())
       msg = paused;
     #if ENABLED(SDSUPPORT)
       else if (IS_SD_PRINTING())
@@ -1251,4 +1249,4 @@ void MarlinUI::update() {
     set_status_P(msg, -1);
   }
 
-#endif
+#endif // HAS_SPI_LCD || EXTENSIBLE_UI

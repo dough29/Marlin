@@ -488,7 +488,7 @@ private:
     static void M49();
   #endif
 
-  #if ENABLED(ULTRA_LCD) && ENABLED(LCD_SET_PROGRESS_MANUALLY)
+  #if ENABLED(LCD_SET_PROGRESS_MANUALLY) && (ENABLED(ULTRA_LCD) || ENABLED(EXTENSIBLE_UI))
     static void M73();
   #endif
 
@@ -792,9 +792,7 @@ private:
   #endif
 
   #if HAS_TRINAMIC
-    #if ENABLED(TMC_DEBUG)
-      static void M122();
-    #endif
+    static void M122();
     static void M906();
     #if ENABLED(MONITOR_DRIVER_STATUS)
       static void M911();

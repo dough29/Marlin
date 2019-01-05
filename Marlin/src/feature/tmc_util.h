@@ -22,6 +22,7 @@
 #pragma once
 
 #include "../inc/MarlinConfig.h"
+#include "../lcd/ultralcd.h"
 #if HAS_TRINAMIC
   #include <TMCStepper.h>
 #endif
@@ -41,6 +42,13 @@
 #define TMC_E3_LABEL 'E', '3'
 #define TMC_E4_LABEL 'E', '4'
 #define TMC_E5_LABEL 'E', '5'
+
+#define CHOPPER_DEFAULT_12V  { 3, -1, 1 }
+#define CHOPPER_DEFAULT_19V  { 4,  1, 1 }
+#define CHOPPER_DEFAULT_24V  { 4,  2, 1 }
+#define CHOPPER_DEFAULT_36V  { 5,  2, 4 }
+#define CHOPPER_PRUSAMK3_24V { 4,  1, 4 }
+#define CHOPPER_MARLIN_119   { 5,  2, 3 }
 
 template<char AXIS_LETTER, char DRIVER_ID>
 class TMCStorage {
@@ -155,12 +163,14 @@ void tmc_set_sgt(TMC &st, const int8_t sgt_val) {
 }
 
 void monitor_tmc_driver();
+void test_tmc_connection(const bool test_x, const bool test_y, const bool test_z, const bool test_e);
 
 #if ENABLED(TMC_DEBUG)
   #if ENABLED(MONITOR_DRIVER_STATUS)
     void tmc_set_report_status(const bool status);
   #endif
-  void tmc_report_all();
+  void tmc_report_all(const bool print_x, const bool print_y, const bool print_z, const bool print_e);
+  void tmc_get_registers(const bool print_x, const bool print_y, const bool print_z, const bool print_e);
 #endif
 
 /**

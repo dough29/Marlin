@@ -1,6 +1,6 @@
 /**
  * Marlin 3D Printer Firmware
- * Copyright (C) 2016 MarlinFirmware [https://github.com/MarlinFirmware/Marlin]
+ * Copyright (C) 2019 MarlinFirmware [https://github.com/MarlinFirmware/Marlin]
  * Copyright (c) 2016 Bob Cousins bobcousins42@googlemail.com
  *
  * This program is free software: you can redistribute it and/or modify
@@ -197,7 +197,7 @@ FORCE_INLINE void HAL_timer_start(const uint8_t timer_num, const uint32_t freque
 #define HAL_timer_isr_epilogue(TIMER_NUM)
 
 /* 18 cycles maximum latency */
-#define HAL_STEP_TIMER_ISR \
+#define HAL_STEP_TIMER_ISR() \
 extern "C" void TIMER1_COMPA_vect (void) __attribute__ ((signal, naked, used, externally_visible)); \
 extern "C" void TIMER1_COMPA_vect_bottom (void) asm ("TIMER1_COMPA_vect_bottom") __attribute__ ((used, externally_visible, noinline)); \
 void TIMER1_COMPA_vect (void) { \
@@ -270,7 +270,7 @@ void TIMER1_COMPA_vect (void) { \
 void TIMER1_COMPA_vect_bottom(void)
 
 /* 14 cycles maximum latency */
-#define HAL_TEMP_TIMER_ISR \
+#define HAL_TEMP_TIMER_ISR() \
 extern "C" void TIMER0_COMPB_vect (void) __attribute__ ((signal, naked, used, externally_visible)); \
 extern "C" void TIMER0_COMPB_vect_bottom(void)  asm ("TIMER0_COMPB_vect_bottom") __attribute__ ((used, externally_visible, noinline)); \
 void TIMER0_COMPB_vect (void) { \

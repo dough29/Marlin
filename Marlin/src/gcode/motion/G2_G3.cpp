@@ -1,6 +1,6 @@
 /**
  * Marlin 3D Printer Firmware
- * Copyright (C) 2016 MarlinFirmware [https://github.com/MarlinFirmware/Marlin]
+ * Copyright (C) 2019 MarlinFirmware [https://github.com/MarlinFirmware/Marlin]
  *
  * Based on Sprinter and grbl.
  * Copyright (C) 2011 Camiel Gubbels / Erik van der Zalm
@@ -184,12 +184,13 @@ void plan_arc(
     raw[q_axis] = center_Q + r_Q;
     #if ENABLED(AUTO_BED_LEVELING_UBL)
       raw[l_axis] = start_L;
+      UNUSED(linear_per_segment);
     #else
       raw[l_axis] += linear_per_segment;
     #endif
     raw[E_AXIS] += extruder_per_segment;
 
-    clamp_to_software_endstops(raw);
+    apply_motion_limits(raw);
 
     #if HAS_LEVELING && !PLANNER_LEVELING
       planner.apply_leveling(raw);

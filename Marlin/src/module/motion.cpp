@@ -47,7 +47,11 @@
   #include "../feature/bedlevel/bedlevel.h"
 #endif
 
-#if ENABLED(ULTRA_LCD) || ENABLED(EXTENSIBLE_UI)
+#if ENABLED(BLTOUCH)
+  #include "../feature/bltouch.h"
+#endif
+
+#if EITHER(ULTRA_LCD, EXTENSIBLE_UI)
   #include "../lcd/ultralcd.h"
 #endif
 
@@ -57,6 +61,10 @@
 
 #if ENABLED(FWRETRACT)
   #include "../feature/fwretract.h"
+#endif
+
+#if ENABLED(BABYSTEP_DISPLAY_TOTAL)
+  #include "../feature/babystep.h"
 #endif
 
 #define DEBUG_OUT ENABLED(DEBUG_LEVELING_FEATURE)
@@ -855,10 +863,9 @@ void clean_up_after_endstop_or_probe_move() {
 #if HAS_DUPLICATION_MODE
   bool extruder_duplication_enabled,
        mirrored_duplication_mode;
-#endif
-
-#if ENABLED(MULTI_NOZZLE_DUPLICATION) && HOTENDS > 2
-  uint8_t duplication_e_mask; // = 0
+  #if ENABLED(MULTI_NOZZLE_DUPLICATION)
+    uint8_t duplication_e_mask; // = 0
+  #endif
 #endif
 
 #if ENABLED(DUAL_X_CARRIAGE)
@@ -964,7 +971,7 @@ void clean_up_after_endstop_or_probe_move() {
 void prepare_move_to_destination() {
   apply_motion_limits(destination);
 
-  #if ENABLED(PREVENT_COLD_EXTRUSION) || ENABLED(PREVENT_LENGTHY_EXTRUDE)
+  #if EITHER(PREVENT_COLD_EXTRUSION, PREVENT_LENGTHY_EXTRUDE)
 
     if (!DEBUGGING(DRYRUN)) {
       if (destination[E_AXIS] != current_position[E_AXIS]) {
@@ -975,9 +982,21 @@ void prepare_move_to_destination() {
           }
         #endif // PREVENT_COLD_EXTRUSION
         #if ENABLED(PREVENT_LENGTHY_EXTRUDE)
-          if (ABS(destination[E_AXIS] - current_position[E_AXIS]) * planner.e_factor[active_extruder] > (EXTRUDE_MAXLENGTH)) {
-            current_position[E_AXIS] = destination[E_AXIS]; // Behave as if the move really took place, but ignore E part
-            SERIAL_ECHO_MSG(MSG_ERR_LONG_EXTRUDE_STOP);
+          const float e_delta = ABS(destination[E_AXIS] - current_position[E_AXIS]) * planner.e_factor[active_extruder];
+          if (e_delta > (EXTRUDE_MAXLENGTH)) {
+            #if ENABLED(MIXING_EXTRUDER)
+              bool ignore_e = false;
+              float collector[MIXING_STEPPERS];
+              mixer.refresh_collector(1.0, mixer.get_current_vtool(), collector);
+              MIXER_STEPPER_LOOP(e)
+                if (e_delta * collector[e] > (EXTRUDE_MAXLENGTH)) { ignore_e = true; break; }
+            #else
+              constexpr bool ignore_e = true;
+            #endif
+            if (ignore_e) {
+              current_position[E_AXIS] = destination[E_AXIS]; // Behave as if the move really took place, but ignore E part
+              SERIAL_ECHO_MSG(MSG_ERR_LONG_EXTRUDE_STOP);
+            }
           }
         #endif // PREVENT_LENGTHY_EXTRUDE
       }
@@ -1025,7 +1044,7 @@ bool axis_unhomed_error(const bool x/*=true*/, const bool y/*=true*/, const bool
     if (zz) SERIAL_CHAR('Z');
     SERIAL_ECHOLNPGM(" " MSG_FIRST);
 
-    #if ENABLED(ULTRA_LCD) || ENABLED(EXTENSIBLE_UI)
+    #if EITHER(ULTRA_LCD, EXTENSIBLE_UI)
       ui.status_printf_P(0, PSTR(MSG_HOME " %s%s%s " MSG_FIRST), xx ? MSG_X : "", yy ? MSG_Y : "", zz ? MSG_Z : "");
     #endif
     return true;
@@ -1313,6 +1332,14 @@ void set_axis_is_at_home(const AxisEnum axis) {
     }
   #endif
 
+  #if ENABLED(I2C_POSITION_ENCODERS)
+    I2CPEM.homed(axis);
+  #endif
+
+  #if ENABLED(BABYSTEP_DISPLAY_TOTAL)
+    babystep.reset_total(axis);
+  #endif
+
   if (DEBUGGING(LEVELING)) {
     #if HAS_HOME_OFFSET
       DEBUG_ECHOLNPAIR("> home_offset[", axis_codes[axis], "] = ", home_offset[axis]);
@@ -1320,10 +1347,6 @@ void set_axis_is_at_home(const AxisEnum axis) {
     DEBUG_POS("", current_position);
     DEBUG_ECHOLNPAIR("<<< set_axis_is_at_home(", axis_codes[axis], ")");
   }
-
-  #if ENABLED(I2C_POSITION_ENCODERS)
-    I2CPEM.homed(axis);
-  #endif
 }
 
 /**
@@ -1400,7 +1423,7 @@ void homeaxis(const AxisEnum axis) {
 
   #if HOMING_Z_WITH_PROBE && ENABLED(BLTOUCH)
     // BLTOUCH needs to be deployed every time
-    if (axis == Z_AXIS && set_bltouch_deployed(true)) return;
+    if (axis == Z_AXIS && bltouch.deploy()) return;
   #endif
 
   do_homing_move(axis, 1.5f * max_length(
@@ -1414,7 +1437,7 @@ void homeaxis(const AxisEnum axis) {
 
   #if HOMING_Z_WITH_PROBE && ENABLED(BLTOUCH)
     // BLTOUCH needs to be stowed after trigger to rearm itself
-    if (axis == Z_AXIS) set_bltouch_deployed(false);
+    if (axis == Z_AXIS) bltouch.stow();
   #endif
 
   // When homing Z with probe respect probe clearance
@@ -1440,14 +1463,14 @@ void homeaxis(const AxisEnum axis) {
 
     #if HOMING_Z_WITH_PROBE && ENABLED(BLTOUCH)
       // BLTOUCH needs to be deployed every time
-      if (axis == Z_AXIS && set_bltouch_deployed(true)) return;
+      if (axis == Z_AXIS && bltouch.deploy()) return;
     #endif
 
     do_homing_move(axis, 2 * bump, get_homing_bump_feedrate(axis));
 
     #if HOMING_Z_WITH_PROBE && ENABLED(BLTOUCH)
       // BLTOUCH needs to be stowed after trigger to rearm itself
-      if (axis == Z_AXIS) set_bltouch_deployed(false);
+      if (axis == Z_AXIS) bltouch.stow();
     #endif
   }
 

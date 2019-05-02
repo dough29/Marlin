@@ -58,15 +58,33 @@ namespace ExtUI {
 
   bool isMoving();
   bool isAxisPositionKnown(const axis_t);
+  bool isPositionKnown(); // Axis position guaranteed, steppers active since homing
+  bool isMachineHomed(); // Axis position most likely correct, steppers may have deactivated
   bool canMove(const axis_t);
   bool canMove(const extruder_t);
   void enqueueCommands_P(PGM_P const);
+  bool commandsInQueue();
 
   /**
    * Getters and setters
    * Should be used by the EXTENSIBLE_UI to query or change Marlin's state.
    */
   PGM_P getFirmwareName_str();
+
+  #if HAS_SOFTWARE_ENDSTOPS
+    bool getSoftEndstopState();
+    void setSoftEndstopState(const bool);
+  #endif
+
+  #if HAS_TRINAMIC
+    float getAxisCurrent_mA(const axis_t);
+    float getAxisCurrent_mA(const extruder_t);
+    void  setAxisCurrent_mA(const float, const axis_t);
+    void  setAxisCurrent_mA(const float, const extruder_t);
+
+    int getTMCBumpSensitivity(const axis_t);
+    void setTMCBumpSensitivity(const float, const axis_t);
+  #endif
 
   float getActualTemp_celsius(const heater_t);
   float getActualTemp_celsius(const extruder_t);
@@ -90,14 +108,15 @@ namespace ExtUI {
   float getFeedrate_percent();
   uint8_t getProgress_percent();
   uint32_t getProgress_seconds_elapsed();
-  
+
   #if HAS_LEVELING
     bool getLevelingActive();
     void setLevelingActive(const bool);
     #if HAS_MESH
-      typedef float (&bed_mesh_t)[GRID_MAX_POINTS_X][GRID_MAX_POINTS_Y];
+      #include "../../feature/bedlevel/bedlevel.h"
       bool getMeshValid();
       bed_mesh_t getMeshArray();
+      float getMeshPoint(const uint8_t xpos, const uint8_t ypos);
       void setMeshPoint(const uint8_t xpos, const uint8_t ypos, const float zval);
       void onMeshUpdate(const uint8_t xpos, const uint8_t ypos, const float zval);
     #endif

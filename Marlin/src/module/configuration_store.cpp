@@ -37,7 +37,7 @@
  */
 
 // Change EEPROM version if the structure changes
-#define EEPROM_VERSION "V64"
+#define EEPROM_VERSION "V65"
 #define EEPROM_OFFSET 100
 
 // Check the integrity of data offsets.
@@ -56,12 +56,16 @@
 #include "../gcode/gcode.h"
 #include "../Marlin.h"
 
-#if ENABLED(EEPROM_SETTINGS) || ENABLED(SD_FIRMWARE_UPDATE)
+#if EITHER(EEPROM_SETTINGS, SD_FIRMWARE_UPDATE)
   #include "../HAL/shared/persistent_store_api.h"
 #endif
 
 #if HAS_LEVELING
   #include "../feature/bedlevel/bedlevel.h"
+#endif
+
+#if ENABLED(EXTENSIBLE_UI)
+  #include "../lcd/extensible_ui/ui_api.h"
 #endif
 
 #if HAS_SERVOS
@@ -85,6 +89,14 @@
 #endif
 
 #include "../feature/pause.h"
+
+#if HAS_FILAMENT_SENSOR
+  #include "../feature/runout.h"
+#endif
+
+#if ENABLED(EXTRA_LIN_ADVANCE_K)
+extern float saved_extruder_advance_K[EXTRUDERS];
+#endif
 
 #if EXTRUDERS > 1
   #include "tool_change.h"
@@ -132,6 +144,11 @@ typedef struct SettingsDataStruct {
   #if HAS_HOTEND_OFFSET
     float hotend_offset[XYZ][HOTENDS - 1];              // M218 XYZ
   #endif
+
+  //
+  // FILAMENT_RUNOUT_SENSOR
+  //
+  bool runout_sensor_enabled;                           // M412 S
 
   //
   // ENABLE_LEVELING_FADE_HEIGHT
@@ -194,7 +211,7 @@ typedef struct SettingsDataStruct {
           delta_segments_per_second,                    // M665 S
           delta_calibration_radius,                     // M665 B
           delta_tower_angle_trim[ABC];                  // M665 XYZ
-  #elif ENABLED(X_DUAL_ENDSTOPS) || ENABLED(Y_DUAL_ENDSTOPS) || Z_MULTI_ENDSTOPS
+  #elif EITHER(X_DUAL_ENDSTOPS, Y_DUAL_ENDSTOPS) || Z_MULTI_ENDSTOPS
     float x2_endstop_adj,                               // M666 X
           y2_endstop_adj,                               // M666 Y
           z2_endstop_adj,                               // M666 Z (S2)
@@ -283,6 +300,8 @@ typedef struct SettingsDataStruct {
 
 } SettingsData;
 
+//static_assert(sizeof(SettingsData) <= E2END + 1, "EEPROM too small to contain SettingsData!");
+
 MarlinSettings settings;
 
 uint16_t MarlinSettings::datasize() { return sizeof(SettingsData); }
@@ -340,7 +359,7 @@ void MarlinSettings::postprocess() {
     fwretract.refresh_autoretract();
   #endif
 
-  #if ENABLED(JUNCTION_DEVIATION) && ENABLED(LIN_ADVANCE)
+  #if BOTH(JUNCTION_DEVIATION, LIN_ADVANCE)
     planner.recalculate_max_e_jerk();
   #endif
 
@@ -384,18 +403,35 @@ void MarlinSettings::postprocess() {
 
 #if ENABLED(EEPROM_SETTINGS)
 
-  #define EEPROM_START() int eeprom_index = EEPROM_OFFSET; persistentStore.access_start()
-  #define EEPROM_FINISH() persistentStore.access_finish()
-  #define EEPROM_SKIP(VAR) eeprom_index += sizeof(VAR)
-  #define EEPROM_WRITE(VAR) persistentStore.write_data(eeprom_index, (uint8_t*)&VAR, sizeof(VAR), &working_crc)
-  #define EEPROM_READ(VAR) persistentStore.read_data(eeprom_index, (uint8_t*)&VAR, sizeof(VAR), &working_crc, !validating)
-  #define EEPROM_READ_ALWAYS(VAR) persistentStore.read_data(eeprom_index, (uint8_t*)&VAR, sizeof(VAR), &working_crc)
-  #define EEPROM_ASSERT(TST,ERR) do{ if (!(TST)) { SERIAL_ERROR_MSG(ERR); eeprom_error = true; } }while(0)
+  #define WORD_PADDED_EEPROM ENABLED(__STM32F1__, FLASH_EEPROM_EMULATION)
+
+  #if WORD_PADDED_EEPROM && ENABLED(DEBUG_EEPROM_READWRITE)
+    #define UPDATE_TEST_INDEX(VAR) (text_index += sizeof(VAR))
+  #else
+    #define UPDATE_TEST_INDEX(VAR) NOOP
+  #endif
+  #if WORD_PADDED_EEPROM
+    #define EEPROM_SKIP(VAR) do{ eeprom_index += sizeof(VAR) + (sizeof(VAR) & 1); UPDATE_TEST_INDEX(sizeof(VAR)); }while(0)
+  #else
+    #define EEPROM_SKIP(VAR) (eeprom_index += sizeof(VAR))
+  #endif
+
+  #define EEPROM_START()          int eeprom_index = EEPROM_OFFSET; persistentStore.access_start()
+  #define EEPROM_FINISH()         persistentStore.access_finish()
+  #define EEPROM_WRITE(VAR)       do{ persistentStore.write_data(eeprom_index, (uint8_t*)&VAR, sizeof(VAR), &working_crc);              UPDATE_TEST_INDEX(VAR); }while(0)
+  #define EEPROM_READ(VAR)        do{ persistentStore.read_data(eeprom_index, (uint8_t*)&VAR, sizeof(VAR), &working_crc, !validating);  UPDATE_TEST_INDEX(VAR); }while(0)
+  #define EEPROM_READ_ALWAYS(VAR) do{ persistentStore.read_data(eeprom_index, (uint8_t*)&VAR, sizeof(VAR), &working_crc);               UPDATE_TEST_INDEX(VAR); }while(0)
+  #define EEPROM_ASSERT(TST,ERR)  do{ if (!(TST)) { SERIAL_ERROR_MSG(ERR); eeprom_error = true; } }while(0)
 
   #if ENABLED(DEBUG_EEPROM_READWRITE)
+    #if WORD_PADDED_EEPROM
+      int test_index;
+    #else
+      #define test_index eeprom_index
+    #endif
     #define _FIELD_TEST(FIELD) \
       EEPROM_ASSERT( \
-        eeprom_error || eeprom_index == offsetof(SettingsData, FIELD) + EEPROM_OFFSET, \
+        eeprom_error || test_index == offsetof(SettingsData, FIELD) + EEPROM_OFFSET, \
         "Field " STRINGIFY(FIELD) " mismatch." \
       )
   #else
@@ -448,7 +484,7 @@ void MarlinSettings::postprocess() {
 
       #if HAS_CLASSIC_JERK
         EEPROM_WRITE(planner.max_jerk);
-        #if ENABLED(JUNCTION_DEVIATION) && ENABLED(LIN_ADVANCE)
+        #if BOTH(JUNCTION_DEVIATION, LIN_ADVANCE)
           dummy = float(DEFAULT_EJERK);
           EEPROM_WRITE(dummy);
         #endif
@@ -484,6 +520,18 @@ void MarlinSettings::postprocess() {
         // Skip hotend 0 which must be 0
         for (uint8_t e = 1; e < HOTENDS; e++)
           LOOP_XYZ(i) EEPROM_WRITE(hotend_offset[i][e]);
+      #endif
+    }
+
+    //
+    // Filament Runout Sensor
+    //
+    {
+      #if HAS_FILAMENT_SENSOR
+        EEPROM_WRITE(runout.enabled);
+      #else
+        const bool runout_sensor_enabled = true;
+        EEPROM_WRITE(runout_sensor_enabled);
       #endif
     }
 
@@ -624,7 +672,7 @@ void MarlinSettings::postprocess() {
         EEPROM_WRITE(delta_calibration_radius);  // 1 float
         EEPROM_WRITE(delta_tower_angle_trim);    // 3 floats
 
-      #elif ENABLED(X_DUAL_ENDSTOPS) || ENABLED(Y_DUAL_ENDSTOPS) || Z_MULTI_ENDSTOPS
+      #elif EITHER(X_DUAL_ENDSTOPS, Y_DUAL_ENDSTOPS) || Z_MULTI_ENDSTOPS
 
         _FIELD_TEST(x2_endstop_adj);
 
@@ -757,7 +805,7 @@ void MarlinSettings::postprocess() {
         const fwretract_settings_t autoretract_defaults = { 3, 45, 0, 0, 0, 13, 0, 8 };
         EEPROM_WRITE(autoretract_defaults);
       #endif
-      #if ENABLED(FWRETRACT) && ENABLED(FWRETRACT_AUTORETRACT)
+      #if BOTH(FWRETRACT, FWRETRACT_AUTORETRACT)
         EEPROM_WRITE(fwretract.autoretract_enabled);
       #else
         const bool autoretract_enabled = false;
@@ -1099,6 +1147,10 @@ void MarlinSettings::postprocess() {
         store_mesh(ubl.storage_slot);
     #endif
 
+    #if ENABLED(EXTENSIBLE_UI)
+      if (!eeprom_error) ExtUI::onStoreSettings();
+    #endif
+
     return !eeprom_error;
   }
 
@@ -1167,7 +1219,7 @@ void MarlinSettings::postprocess() {
 
         #if HAS_CLASSIC_JERK
           EEPROM_READ(planner.max_jerk);
-          #if ENABLED(JUNCTION_DEVIATION) && ENABLED(LIN_ADVANCE)
+          #if BOTH(JUNCTION_DEVIATION, LIN_ADVANCE)
             EEPROM_READ(dummy);
           #endif
         #else
@@ -1205,6 +1257,19 @@ void MarlinSettings::postprocess() {
           // Skip hotend 0 which must be 0
           for (uint8_t e = 1; e < HOTENDS; e++)
             LOOP_XYZ(i) EEPROM_READ(hotend_offset[i][e]);
+        #endif
+      }
+
+      //
+      // Filament Runout Sensor
+      //
+      {
+        _FIELD_TEST(runout_sensor_enabled);
+        #if HAS_FILAMENT_SENSOR
+          EEPROM_READ(runout.enabled);
+        #else
+          bool runout_sensor_enabled;
+          EEPROM_READ(runout_sensor_enabled);
         #endif
       }
 
@@ -1340,7 +1405,7 @@ void MarlinSettings::postprocess() {
           EEPROM_READ(delta_calibration_radius);  // 1 float
           EEPROM_READ(delta_tower_angle_trim);    // 3 floats
 
-        #elif ENABLED(X_DUAL_ENDSTOPS) || ENABLED(Y_DUAL_ENDSTOPS) || Z_MULTI_ENDSTOPS
+        #elif EITHER(X_DUAL_ENDSTOPS, Y_DUAL_ENDSTOPS) || Z_MULTI_ENDSTOPS
 
           _FIELD_TEST(x2_endstop_adj);
 
@@ -1472,7 +1537,7 @@ void MarlinSettings::postprocess() {
           fwretract_settings_t fwretract_settings;
           EEPROM_READ(fwretract_settings);
         #endif
-        #if ENABLED(FWRETRACT) && ENABLED(FWRETRACT_AUTORETRACT)
+        #if BOTH(FWRETRACT, FWRETRACT_AUTORETRACT)
           EEPROM_READ(fwretract.autoretract_enabled);
         #else
           bool autoretract_enabled;
@@ -1853,7 +1918,13 @@ void MarlinSettings::postprocess() {
   }
 
   bool MarlinSettings::load() {
-    if (validate()) return _load();
+    if (validate()) {
+      const bool success = _load();
+      #if ENABLED(EXTENSIBLE_UI)
+        if (success) ExtUI::onLoadSettings();
+      #endif
+      return success;
+    }
     reset();
     return true;
   }
@@ -2012,6 +2083,19 @@ void MarlinSettings::reset() {
     reset_hotend_offsets();
   #endif
 
+  //
+  // Filament Runout Sensor
+  //
+
+  #if HAS_FILAMENT_SENSOR
+    runout.enabled = true;
+    runout.reset();
+  #endif
+
+  //
+  // Tool-change Settings
+  //
+
   #if EXTRUDERS > 1
     #if ENABLED(TOOLCHANGE_FILAMENT_SWAP)
       toolchange_settings.swap_length = TOOLCHANGE_FIL_SWAP_LENGTH;
@@ -2023,6 +2107,10 @@ void MarlinSettings::reset() {
     #endif
     toolchange_settings.z_raise = TOOLCHANGE_ZRAISE;
   #endif
+
+  //
+  // Magnetic Parking Extruder
+  //
 
   #if ENABLED(MAGNETIC_PARKING_EXTRUDER)
     mpe_settings_init();
@@ -2066,7 +2154,7 @@ void MarlinSettings::reset() {
     delta_calibration_radius = DELTA_CALIBRATION_RADIUS;
     COPY(delta_tower_angle_trim, dta);
 
-  #elif ENABLED(X_DUAL_ENDSTOPS) || ENABLED(Y_DUAL_ENDSTOPS) || Z_MULTI_ENDSTOPS
+  #elif EITHER(X_DUAL_ENDSTOPS, Y_DUAL_ENDSTOPS) || Z_MULTI_ENDSTOPS
 
     #if ENABLED(X_DUAL_ENDSTOPS)
       endstops.x2_endstop_adj = (
@@ -2216,7 +2304,12 @@ void MarlinSettings::reset() {
   //
 
   #if ENABLED(LIN_ADVANCE)
-    LOOP_L_N(i, EXTRUDERS) planner.extruder_advance_K[i] = LIN_ADVANCE_K;
+    LOOP_L_N(i, EXTRUDERS) {
+      planner.extruder_advance_K[i] = LIN_ADVANCE_K;
+    #if ENABLED(EXTRA_LIN_ADVANCE_K)
+      saved_extruder_advance_K[i] = LIN_ADVANCE_K;
+    #endif
+    }
   #endif
 
   //
@@ -2264,6 +2357,10 @@ void MarlinSettings::reset() {
 
   DEBUG_ECHO_START();
   DEBUG_ECHOLNPGM("Hardcoded Default Settings Loaded");
+
+  #if ENABLED(EXTENSIBLE_UI)
+    ExtUI::onFactoryReset();
+  #endif
 }
 
 #if DISABLED(DISABLE_M503)
@@ -2496,6 +2593,12 @@ void MarlinSettings::reset() {
       }
     #endif
 
+    #if HAS_FILAMENT_SENSOR
+      CONFIG_ECHO_HEADING("Filament Runout Sensor:");
+      CONFIG_ECHO_START();
+      SERIAL_ECHOLNPAIR("  M412 S", int(runout.enabled));
+    #endif
+
     /**
      * Bed Leveling
      */
@@ -2578,7 +2681,7 @@ void MarlinSettings::reset() {
             #endif
           #elif ENABLED(SWITCHING_NOZZLE)
             case SWITCHING_NOZZLE_SERVO_NR:
-          #elif defined(Z_SERVO_ANGLES) && defined(Z_PROBE_SERVO_NR)
+          #elif (ENABLED(BLTOUCH) && defined(BLTOUCH_ANGLES)) || (defined(Z_SERVO_ANGLES) && defined(Z_PROBE_SERVO_NR))
             case Z_PROBE_SERVO_NR:
           #endif
             CONFIG_ECHO_START();
@@ -2623,7 +2726,7 @@ void MarlinSettings::reset() {
         , " Z", LINEAR_UNIT(delta_tower_angle_trim[C_AXIS])
       );
 
-    #elif ENABLED(X_DUAL_ENDSTOPS) || ENABLED(Y_DUAL_ENDSTOPS) || Z_MULTI_ENDSTOPS
+    #elif EITHER(X_DUAL_ENDSTOPS, Y_DUAL_ENDSTOPS) || Z_MULTI_ENDSTOPS
 
       CONFIG_ECHO_HEADING("Endstop adjustment:");
       CONFIG_ECHO_START();

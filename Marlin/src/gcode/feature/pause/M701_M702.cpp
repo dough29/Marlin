@@ -1,9 +1,9 @@
 /**
  * Marlin 3D Printer Firmware
- * Copyright (C) 2019 MarlinFirmware [https://github.com/MarlinFirmware/Marlin]
+ * Copyright (c) 2019 MarlinFirmware [https://github.com/MarlinFirmware/Marlin]
  *
  * Based on Sprinter and grbl.
- * Copyright (C) 2011 Camiel Gubbels / Erik van der Zalm
+ * Copyright (c) 2011 Camiel Gubbels / Erik van der Zalm
  *
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -92,12 +92,12 @@ void GcodeSuite::M701() {
     // Change toolhead if specified
     uint8_t active_extruder_before_filament_change = active_extruder;
     if (active_extruder != target_extruder)
-      tool_change(target_extruder, 0, false);
+      tool_change(target_extruder, false);
   #endif
 
   // Lift Z axis
   if (park_point.z > 0)
-    do_blocking_move_to_z(MIN(current_position[Z_AXIS] + park_point.z, Z_MAX_POS), NOZZLE_PARK_Z_FEEDRATE);
+    do_blocking_move_to_z(_MIN(current_position[Z_AXIS] + park_point.z, Z_MAX_POS), NOZZLE_PARK_Z_FEEDRATE);
 
   // Load filament
   #if ENABLED(PRUSA_MMU2)
@@ -116,12 +116,12 @@ void GcodeSuite::M701() {
 
   // Restore Z axis
   if (park_point.z > 0)
-    do_blocking_move_to_z(MAX(current_position[Z_AXIS] - park_point.z, 0), NOZZLE_PARK_Z_FEEDRATE);
+    do_blocking_move_to_z(_MAX(current_position[Z_AXIS] - park_point.z, 0), NOZZLE_PARK_Z_FEEDRATE);
 
   #if EXTRUDERS > 1 && DISABLED(PRUSA_MMU2)
     // Restore toolhead if it was changed
     if (active_extruder_before_filament_change != active_extruder)
-      tool_change(active_extruder_before_filament_change, 0, false);
+      tool_change(active_extruder_before_filament_change, false);
   #endif
 
   #if ENABLED(MIXING_EXTRUDER)
@@ -175,7 +175,6 @@ void GcodeSuite::M702() {
 
     const int8_t target_extruder = active_extruder;
   #else
-    const float unload_length_multiplier = 1.0;
     const int8_t target_extruder = get_target_extruder_from_command();
     if (target_extruder < 0) return;
   #endif
@@ -192,12 +191,12 @@ void GcodeSuite::M702() {
     // Change toolhead if specified
     uint8_t active_extruder_before_filament_change = active_extruder;
     if (active_extruder != target_extruder)
-      tool_change(target_extruder, 0, false);
+      tool_change(target_extruder, false);
   #endif
 
   // Lift Z axis
   if (park_point.z > 0)
-    do_blocking_move_to_z(MIN(current_position[Z_AXIS] + park_point.z, Z_MAX_POS), NOZZLE_PARK_Z_FEEDRATE);
+    do_blocking_move_to_z(_MIN(current_position[Z_AXIS] + park_point.z, Z_MAX_POS), NOZZLE_PARK_Z_FEEDRATE);
 
   // Unload filament
   #if ENABLED(PRUSA_MMU2)
@@ -206,7 +205,7 @@ void GcodeSuite::M702() {
     #if EXTRUDERS > 1 && ENABLED(FILAMENT_UNLOAD_ALL_EXTRUDERS)
       if (!parser.seenval('T')) {
         HOTEND_LOOP() {
-          if (e != active_extruder) tool_change(e, 0, false);
+          if (e != active_extruder) tool_change(e, false);
           unload_filament(-fc_settings[e].unload_length, true, PAUSE_MODE_UNLOAD_FILAMENT);
         }
       }
@@ -227,12 +226,12 @@ void GcodeSuite::M702() {
 
   // Restore Z axis
   if (park_point.z > 0)
-    do_blocking_move_to_z(MAX(current_position[Z_AXIS] - park_point.z, 0), NOZZLE_PARK_Z_FEEDRATE);
+    do_blocking_move_to_z(_MAX(current_position[Z_AXIS] - park_point.z, 0), NOZZLE_PARK_Z_FEEDRATE);
 
   #if EXTRUDERS > 1 && DISABLED(PRUSA_MMU2)
     // Restore toolhead if it was changed
     if (active_extruder_before_filament_change != active_extruder)
-      tool_change(active_extruder_before_filament_change, 0, false);
+      tool_change(active_extruder_before_filament_change, false);
   #endif
 
   #if ENABLED(MIXING_EXTRUDER)

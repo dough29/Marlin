@@ -1,9 +1,9 @@
 /**
  * Marlin 3D Printer Firmware
- * Copyright (C) 2019 MarlinFirmware [https://github.com/MarlinFirmware/Marlin]
+ * Copyright (c) 2019 MarlinFirmware [https://github.com/MarlinFirmware/Marlin]
  *
  * Based on Sprinter and grbl.
- * Copyright (C) 2011 Camiel Gubbels / Erik van der Zalm
+ * Copyright (c) 2011 Camiel Gubbels / Erik van der Zalm
  *
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -38,9 +38,9 @@ AsyncWebSocket ws("/ws"); // TODO Move inside the class.
 
 RingBuffer::RingBuffer(ring_buffer_pos_t size)
   : data(new uint8_t[size]),
+    size(size),
     read_index(0),
-    write_index(0),
-    size(size)
+    write_index(0)
 {}
 
 RingBuffer::~RingBuffer() { delete[] data; }

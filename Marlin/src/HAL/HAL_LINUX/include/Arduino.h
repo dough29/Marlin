@@ -1,9 +1,9 @@
 /**
  * Marlin 3D Printer Firmware
- * Copyright (C) 2019 MarlinFirmware [https://github.com/MarlinFirmware/Marlin]
+ * Copyright (c) 2019 MarlinFirmware [https://github.com/MarlinFirmware/Marlin]
  *
  * Based on Sprinter and grbl.
- * Copyright (C) 2011 Camiel Gubbels / Erik van der Zalm
+ * Copyright (c) 2011 Camiel Gubbels / Erik van der Zalm
  *
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -43,16 +43,12 @@
 #define FALLING      0x03
 #define RISING       0x04
 
-#define E2END 0xFFF // EEPROM end address
-
 typedef uint8_t byte;
 #define PROGMEM
 #define PSTR(v) (v)
 #define PGM_P const char *
 
 // Used for libraries, preprocessor, and constants
-#define min(a,b) ((a)<(b)?(a):(b))
-#define max(a,b) ((a)>(b)?(a):(b))
 #define abs(x) ((x)>0?(x):-(x))
 
 #ifndef isnan
@@ -113,13 +109,13 @@ uint16_t analogRead(pin_t);
 // EEPROM
 void eeprom_write_byte(unsigned char *pos, unsigned char value);
 unsigned char eeprom_read_byte(unsigned char *pos);
-void eeprom_read_block (void *__dst, const void *__src, size_t __n);
-void eeprom_update_block (const void *__src, void *__dst, size_t __n);
+void eeprom_read_block(void *__dst, const void *__src, size_t __n);
+void eeprom_update_block(const void *__src, void *__dst, size_t __n);
 
 int32_t random(int32_t);
 int32_t random(int32_t, int32_t);
 void randomSeed(uint32_t);
 
-char *dtostrf (double __val, signed char __width, unsigned char __prec, char *__s);
+char *dtostrf(double __val, signed char __width, unsigned char __prec, char *__s);
 
 int map(uint16_t x, uint16_t in_min, uint16_t in_max, uint16_t out_min, uint16_t out_max);

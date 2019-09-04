@@ -1,9 +1,9 @@
 /**
  * Marlin 3D Printer Firmware
- * Copyright (C) 2019 MarlinFirmware [https://github.com/MarlinFirmware/Marlin]
+ * Copyright (c) 2019 MarlinFirmware [https://github.com/MarlinFirmware/Marlin]
  *
  * Based on Sprinter and grbl.
- * Copyright (C) 2011 Camiel Gubbels / Erik van der Zalm
+ * Copyright (c) 2011 Camiel Gubbels / Erik van der Zalm
  *
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -21,7 +21,7 @@
  */
 
 /**
- *  The monitor_driver routines are a close copy of the TMC code
+ * The monitor_driver routines are a close copy of the TMC code
  */
 
 #include "../../inc/MarlinConfig.h"
@@ -32,9 +32,9 @@
 
 L6470_Marlin L6470;
 
-#include "../stepper_indirection.h"
+#include "../../module/stepper/indirection.h"
+#include "../../module/planner.h"
 #include "../../gcode/gcode.h"
-#include "../planner.h"
 
 #define DEBUG_OUT ENABLED(L6470_CHITCHAT)
 #include "../../core/debug_out.h"
@@ -624,7 +624,7 @@ void L6470_Marlin::error_status_decode(const uint16_t status, const uint8_t axis
     #endif
   };
 
-  inline void append_stepper_err(char * &p, const uint8_t stepper_index, const char * const err=NULL) {
+  inline void append_stepper_err(char * &p, const uint8_t stepper_index, const char * const err=nullptr) {
     p += sprintf_P(p, PSTR("Stepper %c%c "), char(index_to_axis[stepper_index][0]), char(index_to_axis[stepper_index][1]));
     if (err) p += sprintf_P(p, err);
   }

@@ -1,7 +1,7 @@
 /**
  * Marlin 3D Printer Firmware
  *
- * Copyright (C) 2019 MarlinFirmware [https://github.com/MarlinFirmware/Marlin]
+ * Copyright (c) 2019 MarlinFirmware [https://github.com/MarlinFirmware/Marlin]
  * Copyright (c) 2016 Bob Cousins bobcousins42@googlemail.com
  * Copyright (c) 2015-2016 Nico Tonnhofer wurstnase.reprap@gmail.com
  *
@@ -19,24 +19,22 @@
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  *
  */
+#pragma once
 
 /**
  * Description: HAL for Teensy 3.5 and Teensy 3.6
  */
 
-#pragma once
-
 #define CPU_32_BIT
 
 #include "../shared/Marduino.h"
+#include "../shared/math_32bit.h"
+#include "../shared/HAL_SPI.h"
 
-#include "../math_32bit.h"
-#include "../HAL_SPI.h"
+#include "fastio.h"
+#include "watchdog.h"
 
-#include "fastio_Teensy.h"
-#include "watchdog_Teensy.h"
-
-#include "HAL_timers_Teensy.h"
+#include "timers.h"
 
 #include <stdint.h>
 
@@ -89,13 +87,7 @@ typedef int8_t pin_t;
 #undef pgm_read_word
 #define pgm_read_word(addr) (*((uint16_t*)(addr)))
 
-#define RST_POWER_ON   1
-#define RST_EXTERNAL   2
-#define RST_BROWN_OUT  4
-#define RST_WATCHDOG   8
-#define RST_JTAG       16
-#define RST_SOFTWARE   32
-#define RST_BACKUP     64
+inline void HAL_init(void) { }
 
 // Clear the reset reason
 void HAL_clear_reset_source(void);
@@ -105,9 +97,12 @@ uint8_t HAL_get_reset_source(void);
 
 FORCE_INLINE void _delay_ms(const int delay_ms) { delay(delay_ms); }
 
+#pragma GCC diagnostic push
+#pragma GCC diagnostic ignored "-Wunused-function"
 extern "C" {
   int freeMemory(void);
 }
+#pragma GCC diagnostic pop
 
 // SPI: Extended functions which take a channel number (hardware SPI only)
 
@@ -128,24 +123,10 @@ void HAL_adc_init();
 #define HAL_READ_ADC()      HAL_adc_get_result()
 #define HAL_ADC_READY()     true
 
-#define HAL_ANALOG_SELECT(pin) NOOP;
+#define HAL_ANALOG_SELECT(pin)
 
 void HAL_adc_start_conversion(const uint8_t adc_pin);
-
 uint16_t HAL_adc_get_result(void);
-
-/*
-uint16_t HAL_getAdcReading(uint8_t chan);
-
-void HAL_startAdcConversion(uint8_t chan);
-uint8_t HAL_pinToAdcChannel(int pin);
-
-uint16_t HAL_getAdcFreerun(uint8_t chan, bool wait_for_conversion = false);
-//uint16_t HAL_getAdcSuperSample(uint8_t chan);
-
-void HAL_enable_AdcFreerun(void);
-//void HAL_disable_AdcFreerun(uint8_t chan);
-*/
 
 #define GET_PIN_MAP_PIN(index) index
 #define GET_PIN_MAP_INDEX(pin) pin

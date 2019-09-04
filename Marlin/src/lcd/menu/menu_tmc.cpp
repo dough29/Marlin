@@ -1,9 +1,9 @@
 /**
  * Marlin 3D Printer Firmware
- * Copyright (C) 2019 MarlinFirmware [https://github.com/MarlinFirmware/Marlin]
+ * Copyright (c) 2019 MarlinFirmware [https://github.com/MarlinFirmware/Marlin]
  *
  * Based on Sprinter and grbl.
- * Copyright (C) 2011 Camiel Gubbels / Erik van der Zalm
+ * Copyright (c) 2011 Camiel Gubbels / Erik van der Zalm
  *
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -29,7 +29,7 @@
 #if HAS_TRINAMIC && HAS_LCD_MENU
 
 #include "menu.h"
-#include "../../module/stepper_indirection.h"
+#include "../../module/stepper/indirection.h"
 #include "../../feature/tmc_util.h"
 
 #define TMC_EDIT_STORED_I_RMS(ST,MSG) MENU_ITEM_EDIT_CALLBACK(uint16_4, MSG, &stepper##ST.val_mA, 100, 3000, refresh_stepper_current_##ST)
@@ -124,43 +124,43 @@ void menu_tmc_current() {
   #define TMC_EDIT_STORED_HYBRID_THRS(ST, MSG) MENU_ITEM_EDIT_CALLBACK(uint8, MSG, &stepper##ST.stored.hybrid_thrs, 0, 255, refresh_hybrid_thrs_##ST);
 
   #if AXIS_HAS_STEALTHCHOP(X)
-    void refresh_hybrid_thrs_X()  {  stepperX.refresh_hybrid_thrs(planner.settings.axis_steps_per_mm[X_AXIS]); }
+    void refresh_hybrid_thrs_X()  {  stepperX.refresh_hybrid_thrs(); }
   #endif
   #if AXIS_HAS_STEALTHCHOP(Y)
-    void refresh_hybrid_thrs_Y()  {  stepperY.refresh_hybrid_thrs(planner.settings.axis_steps_per_mm[Y_AXIS]); }
+    void refresh_hybrid_thrs_Y()  {  stepperY.refresh_hybrid_thrs(); }
   #endif
   #if AXIS_HAS_STEALTHCHOP(Z)
-    void refresh_hybrid_thrs_Z()  {  stepperZ.refresh_hybrid_thrs(planner.settings.axis_steps_per_mm[Z_AXIS]); }
+    void refresh_hybrid_thrs_Z()  {  stepperZ.refresh_hybrid_thrs(); }
   #endif
   #if AXIS_HAS_STEALTHCHOP(X2)
-    void refresh_hybrid_thrs_X2() { stepperX2.refresh_hybrid_thrs(planner.settings.axis_steps_per_mm[X_AXIS]); }
+    void refresh_hybrid_thrs_X2() { stepperX2.refresh_hybrid_thrs(); }
   #endif
   #if AXIS_HAS_STEALTHCHOP(Y2)
-    void refresh_hybrid_thrs_Y2() { stepperY2.refresh_hybrid_thrs(planner.settings.axis_steps_per_mm[Y_AXIS]); }
+    void refresh_hybrid_thrs_Y2() { stepperY2.refresh_hybrid_thrs(); }
   #endif
   #if AXIS_HAS_STEALTHCHOP(Z2)
-    void refresh_hybrid_thrs_Z2() { stepperZ2.refresh_hybrid_thrs(planner.settings.axis_steps_per_mm[Z_AXIS]); }
+    void refresh_hybrid_thrs_Z2() { stepperZ2.refresh_hybrid_thrs(); }
   #endif
   #if AXIS_HAS_STEALTHCHOP(Z3)
-    void refresh_hybrid_thrs_Z3() { stepperZ3.refresh_hybrid_thrs(planner.settings.axis_steps_per_mm[Z_AXIS]); }
+    void refresh_hybrid_thrs_Z3() { stepperZ3.refresh_hybrid_thrs(); }
   #endif
   #if AXIS_HAS_STEALTHCHOP(E0)
-    void refresh_hybrid_thrs_E0() { stepperE0.refresh_hybrid_thrs(planner.settings.axis_steps_per_mm[E_AXIS]); }
+    void refresh_hybrid_thrs_E0() { stepperE0.refresh_hybrid_thrs(); }
   #endif
   #if AXIS_HAS_STEALTHCHOP(E1)
-    void refresh_hybrid_thrs_E1() { stepperE1.refresh_hybrid_thrs(planner.settings.axis_steps_per_mm[E_AXIS_N(1)]); }
+    void refresh_hybrid_thrs_E1() { stepperE1.refresh_hybrid_thrs(); }
   #endif
   #if AXIS_HAS_STEALTHCHOP(E2)
-    void refresh_hybrid_thrs_E2() { stepperE2.refresh_hybrid_thrs(planner.settings.axis_steps_per_mm[E_AXIS_N(2)]); }
+    void refresh_hybrid_thrs_E2() { stepperE2.refresh_hybrid_thrs(); }
   #endif
   #if AXIS_HAS_STEALTHCHOP(E3)
-    void refresh_hybrid_thrs_E3() { stepperE3.refresh_hybrid_thrs(planner.settings.axis_steps_per_mm[E_AXIS_N(3)]); }
+    void refresh_hybrid_thrs_E3() { stepperE3.refresh_hybrid_thrs(); }
   #endif
   #if AXIS_HAS_STEALTHCHOP(E4)
-    void refresh_hybrid_thrs_E4() { stepperE4.refresh_hybrid_thrs(planner.settings.axis_steps_per_mm[E_AXIS_N(4)]); }
+    void refresh_hybrid_thrs_E4() { stepperE4.refresh_hybrid_thrs(); }
   #endif
   #if AXIS_HAS_STEALTHCHOP(E5)
-    void refresh_hybrid_thrs_E5() { stepperE5.refresh_hybrid_thrs(planner.settings.axis_steps_per_mm[E_AXIS_N(5)]); }
+    void refresh_hybrid_thrs_E5() { stepperE5.refresh_hybrid_thrs(); }
   #endif
 
   void menu_tmc_hybrid_thrs() {
@@ -212,10 +212,13 @@ void menu_tmc_current() {
 
 #if ENABLED(SENSORLESS_HOMING)
 
-  #define TMC_EDIT_STORED_SGT(ST) MENU_ITEM_EDIT_CALLBACK(int8, MSG_##ST, &stepper##ST.stored.homing_thrs, -64, 63, refresh_homing_thrs_##ST);
+  #define TMC_EDIT_STORED_SGT(ST) MENU_ITEM_EDIT_CALLBACK(int4, MSG_##ST, &stepper##ST.stored.homing_thrs, stepper##ST.sgt_min, stepper##ST.sgt_max, refresh_homing_thrs_##ST);
 
   #if X_SENSORLESS
     void refresh_homing_thrs_X()  { stepperX.refresh_homing_thrs();  }
+  #endif
+  #if X2_SENSORLESS
+    void refresh_homing_thrs_X2() { stepperX2.refresh_homing_thrs();  }
   #endif
   #if Y_SENSORLESS
     void refresh_homing_thrs_Y()  { stepperY.refresh_homing_thrs();  }
@@ -229,6 +232,9 @@ void menu_tmc_current() {
     MENU_BACK(MSG_TMC_DRIVERS);
     #if X_SENSORLESS
       TMC_EDIT_STORED_SGT(X);
+    #endif
+    #if X2_SENSORLESS
+      TMC_EDIT_STORED_SGT(X2);
     #endif
     #if Y_SENSORLESS
       TMC_EDIT_STORED_SGT(Y);

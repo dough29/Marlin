@@ -1,9 +1,9 @@
 /**
  * Marlin 3D Printer Firmware
- * Copyright (C) 2019 MarlinFirmware [https://github.com/MarlinFirmware/Marlin]
+ * Copyright (c) 2019 MarlinFirmware [https://github.com/MarlinFirmware/Marlin]
  *
  * Based on Sprinter and grbl.
- * Copyright (C) 2011 Camiel Gubbels / Erik van der Zalm
+ * Copyright (c) 2011 Camiel Gubbels / Erik van der Zalm
  *
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -52,12 +52,9 @@ void GcodeSuite::G92() {
       case 1: {
         // Zero the G92 values and restore current position
         #if !IS_SCARA
-          LOOP_XYZ(i) {
-            const float v = position_shift[i];
-            if (v) {
-              position_shift[i] = 0;
-              update_workspace_offset((AxisEnum)i);
-            }
+          LOOP_XYZ(i) if (position_shift[i]) {
+            position_shift[i] = 0;
+            update_workspace_offset((AxisEnum)i);
           }
         #endif // Not SCARA
       } return;

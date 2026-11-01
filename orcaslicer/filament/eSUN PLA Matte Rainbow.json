@@ -1,0 +1,106 @@
+{
+	"from": "User",
+	"name": "eSUN PLA Matte Rainbow",
+	"inherits": "Generic PLA @System",
+	"version": "2.4.0.1",
+	"filament_settings_id": [
+		"eSUN PLA Matte Rainbow"
+	],
+	"filament_vendor": [
+		"eSUN"
+	],
+	"filament_type": [
+		"PLA"
+	],
+	"filament_density": [
+		"1.24"
+	],
+	"filament_cost": [
+		"24"
+	],
+	"filament_diameter": [
+		"1.75"
+	],
+	"filament_flow_ratio": [
+		"1.03"
+	],
+	"nozzle_temperature": [
+		"220"
+	],
+	"nozzle_temperature_initial_layer": [
+		"220"
+	],
+	"nozzle_temperature_range_low": [
+		"200"
+	],
+	"nozzle_temperature_range_high": [
+		"230"
+	],
+	"cool_plate_temp": [
+		"60"
+	],
+	"cool_plate_temp_initial_layer": [
+		"60"
+	],
+	"eng_plate_temp": [
+		"60"
+	],
+	"eng_plate_temp_initial_layer": [
+		"60"
+	],
+	"hot_plate_temp": [
+		"60"
+	],
+	"hot_plate_temp_initial_layer": [
+		"60"
+	],
+	"textured_plate_temp": [
+		"60"
+	],
+	"textured_plate_temp_initial_layer": [
+		"60"
+	],
+	"supertack_plate_temp": [
+		"60"
+	],
+	"supertack_plate_temp_initial_layer": [
+		"60"
+	],
+	"fan_min_speed": [
+		"100"
+	],
+	"fan_max_speed": [
+		"100"
+	],
+	"close_fan_the_first_x_layers": [
+		"3"
+	],
+	"filament_retraction_length": [
+		"1.5"
+	],
+	"filament_retraction_speed": [
+		"40"
+	],
+	"filament_deretraction_speed": [
+		"40"
+	],
+	"filament_retract_restart_extra": [
+		"0"
+	],
+	"filament_retraction_minimum_travel": [
+		"2"
+	],
+	"filament_z_hop": [
+		"0"
+	],
+	"filament_notes": "eSUN Matte Rainbow PLA 1.75 mm. Tour de temperature : meilleur a 220 C, saute a 195 C, moche a partir de 215 C et en dessous.",
+	"filament_max_volumetric_speed": [
+		"7.5"
+	],
+	"enable_pressure_advance": [
+		"1"
+	],
+	"pressure_advance": [
+		"0.9"
+	]
+}

@@ -1,0 +1,87 @@
+{
+	"from": "User",
+	"gcode_flavor": "marlin2",
+	"inherits": "MyMarlin 0.4 nozzle",
+	"input_shaping_type": "ZV",
+	"machine_start_gcode": "G90 ; use absolute coordinates\nM83 ; extruder relative mode\nM140 S[first_layer_bed_temperature] ; set bed temp\nM190 S[first_layer_bed_temperature] ; wait for bed temp\nG28 ; home all\nG34 ; Z steppers auto-alignment\nG29 ; probe the bed with the BLTouch\nM420 S1 ; enable bed leveling compensation\nG1 X0 Y0 Z10 F3000 ; park at the front left while the nozzle heats\nM104 S[first_layer_temperature] ; set extruder temp\nM109 S[first_layer_temperature] ; wait for extruder temp\nG1 X0 Y1.0 Z0.3 F1000 ; move print head to the start of the prime line\nG92 E0.0\n; initial load\nG1 X205.0 E19 F1000\nG1 Y1.6\nG1 X5.0 E19 F1000\nG92 E0.0\n; intro line\nG1 Y2.0 Z0.2 F1000\nG1 X65.0 E9.0 F1000\nG1 X105.0 E12.5 F1000\nG92 E0.0",
+	"name": "CR-10 BLTouch",
+	"print_host": "",
+	"printable_area": [
+		"0x0",
+		"300x0",
+		"300x300",
+		"0x300"
+	],
+	"printable_height": "300",
+	"printer_extruder_id": [
+		"1"
+	],
+	"printer_extruder_variant": [
+		"Direct Drive Standard"
+	],
+	"printer_settings_id": "CR-10 BLTouch",
+	"printhost_apikey": "",
+	"version": "2.4.0.1",
+	"machine_max_acceleration_x": [
+		"3000"
+	],
+	"machine_max_acceleration_y": [
+		"3000"
+	],
+	"machine_max_acceleration_z": [
+		"100"
+	],
+	"machine_max_acceleration_e": [
+		"5000"
+	],
+	"machine_max_acceleration_extruding": [
+		"500"
+	],
+	"machine_max_acceleration_retracting": [
+		"500"
+	],
+	"machine_max_acceleration_travel": [
+		"1000"
+	],
+	"machine_max_speed_x": [
+		"500"
+	],
+	"machine_max_speed_y": [
+		"500"
+	],
+	"machine_max_speed_z": [
+		"15"
+	],
+	"machine_max_speed_e": [
+		"25"
+	],
+	"machine_max_jerk_x": [
+		"10"
+	],
+	"machine_max_jerk_y": [
+		"10"
+	],
+	"machine_max_jerk_z": [
+		"2.7"
+	],
+	"machine_max_jerk_e": [
+		"10"
+	],
+	"machine_end_gcode": "G1 E-1.0 F2100 ; retract\nG92 E0.0\nG1{if max_layer_z < max_print_height} Z{z_offset+min(max_layer_z+30, max_print_height)}{endif} E-34.0 F720 ; move print head up & retract filament\nG4 ; wait\nM104 S0 ; turn off temperature\nM140 S0 ; turn off heatbed\nM107 ; turn off fan\nG1 X0 Y300 F3000 ; park print head at the back left\nM84 ; disable motors",
+	"retraction_length": [
+		"5"
+	],
+	"retraction_speed": [
+		"40"
+	],
+	"deretraction_speed": [
+		"40"
+	],
+	"z_hop": [
+		"0"
+	],
+	"retraction_minimum_travel": [
+		"2"
+	],
+	"thumbnails": ""
+}
